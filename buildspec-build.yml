@@ -1,0 +1,19 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions: { python: 3.10 }
+    commands:
+      - python -m pip install --upgrade pip
+      - pip install -r requirements.txt
+  build:
+    commands:
+      - echo "Packaging application..."
+      - rm -rf bundle && mkdir -p bundle/scripts
+      - cp -R app.py wsgi.py requirements.txt src templates appspec.yml bundle/ || true
+      - cp -R scripts/* bundle/scripts/
+  post_build:
+    commands:
+      - echo "Zipping artifact..."
+      - cd bundle && zip -r ../artifact.zip .
+artifacts:
+  files: ['artifact.zip']
