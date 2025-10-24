@@ -71,7 +71,7 @@ aws_codepipeline_cicd_project_2025/
 
 ## 🧱 Local Setup
 
-```bash
+#```bash
 # 1️⃣ Clone the repo
 git clone https://github.com/GaneshPrasadBhandari/aws_codepipeline_cicd_project_2025
 cd aws_codepipeline_cicd_project_2025
@@ -88,11 +88,11 @@ pip install -r requirements.txt
 python app.py
 # Visit http://127.0.0.1:5000/health
 
+--- 
 
 
-
-☁️ AWS Setup Guide (Step-by-Step)
-1. EC2 Configuration
+## ☁️ AWS Setup Guide (Step-by-Step)
+## 1. EC2 Configuration
 Launch EC2 (Ubuntu 24.04 LTS, t3.micro, free-tier eligible)
 
 Create key pair (.pem file)
@@ -108,7 +108,7 @@ ssh -i "mlproject_key.pem" ubuntu@<EC2-Public-DNS>
 
 
 
-Install updates & CodeDeploy agent:
+## Install updates & CodeDeploy agent:
 sudo apt update -y && sudo apt install ruby-full wget -y
 wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
 chmod +x ./install
@@ -117,13 +117,13 @@ sudo systemctl status codedeploy-agent  # should be active
 
 
 
-Add EC2 tag:
+## Add EC2 tag:
 Key: Role
 Value: mlproject-ec2
 
 
 
-2. IAM Roles
+## 2. IAM Roles
 Create or attach:
 
 EC2 Instance Role → AmazonEC2RoleforAWSCodeDeploy
@@ -134,7 +134,7 @@ CodeBuild Role → AWSCodeBuildDeveloperAccess
 
 CodePipeline Role → AWSCodePipelineFullAccess
 
-3. AWS CodeDeploy
+## 3. AWS CodeDeploy
 Create Application → mlproject-app
 
 Create Deployment Group → mlproject-dg
@@ -147,10 +147,12 @@ Tag Key: Role, Value: mlproject-ec2
 
 Deployment Type: In-place
 
-4. AWS CodeBuild
+## 4. AWS CodeBuild
 Create two projects:
 
-🧩 Build Project
+
+
+## 🧩 Build Project
 Name: mlproject-build
 
 Source Provider: CodePipeline
@@ -161,12 +163,14 @@ Buildspec: buildspec-build.yml
 
 Artifacts: CodePipeline
 
-🧪 Test Project
+
+
+## 🧪 Test Project
 Name: mlproject-test
 
 Buildspec: buildspec-test.yml
 
-5. AWS CodePipeline
+## 5. AWS CodePipeline
 Pipeline Name: mlproject-pipeline
 
 Source Provider: GitHub (via CodeStar Connection)
@@ -182,7 +186,7 @@ Trigger: Automatically on main branch push.
 
 
 
-🔁 First Deployment Validation
+## 🔁 First Deployment Validation
 After the first successful run:
 
 Visit: http://<EC2-Public-DNS>/health
@@ -196,7 +200,7 @@ curl -X POST http://<EC2-Public-DNS>/predict \
 
 
 
-  🧩 Developer Notes
+## 🧩 Developer Notes
 Line Ending Compatibility
 Windows users must ensure LF endings for .sh and .yml files:
 
@@ -207,7 +211,7 @@ Add .gitattributes:
 *.yml text eol=lf
 
 
-Executable Permissions
+## Executable Permissions
 Make scripts executable before pushing:
 git update-index --chmod=+x scripts/*.sh
 git commit -m "Make scripts executable"
@@ -215,7 +219,7 @@ git push
 
 
 
-⚙️ Tech Stack
+## ⚙️ Tech Stack
 
 | Category            | Tools                                                 |
 | ------------------- | ----------------------------------------------------- |
@@ -229,14 +233,14 @@ git push
 
 
 
-🏁 Outcome
+## 🏁 Outcome
 This project demonstrates a fully automated CI/CD pipeline for Machine Learning applications — integrating DevOps + MLOps best practices for real-world deployments.
 
 It is production-ready, scalable, and extendable to containerized (Docker/Kubernetes) or tracking-based (DVC/MLflow) environments.
 
 
 
-📜 License
+## 📜 License
 MIT License © 2025 Ganesh Prasad Bhandari
 
 
