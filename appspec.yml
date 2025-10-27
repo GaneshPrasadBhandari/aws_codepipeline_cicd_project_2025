@@ -12,9 +12,11 @@ hooks:
   BeforeInstall:
     - location: scripts/before_install.sh
       timeout: 300
+      runas: ubuntu   # <-- CHANGE THIS TO ubuntu
   AfterInstall: # <-- NEW HOOK ADDED HERE
     - location: scripts/after_install.sh
       timeout: 300
+      runas: ubuntu   # <-- CHANGE THIS TO ubuntu
   ApplicationStart:
     - location: scripts/start_service.sh
       timeout: 300
