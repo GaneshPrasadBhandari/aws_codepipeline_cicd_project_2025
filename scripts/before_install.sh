@@ -28,7 +28,7 @@ Description=Gunicorn for mlproject
 After=network.target
 
 [Service]
-User=ec2-user
+User=ubuntu
 WorkingDirectory=/opt/mlproject
 Environment="PATH=/opt/mlproject/.venv/bin"
 ExecStart=/opt/mlproject/.venv/bin/gunicorn -w 2 -b 0.0.0.0:80 wsgi:application
