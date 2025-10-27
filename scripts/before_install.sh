@@ -2,7 +2,7 @@
 set -euo pipefail
 
 sudo mkdir -p /opt/mlproject
-sudo chown -R ec2-user:Ubuntu /opt/mlproject
+sudo chown -R ubuntu:ubuntu /opt/mlproject
 
 # Install Python/Pip (AL2023 or AL2)
 if command -v dnf >/dev/null 2>&1; then
