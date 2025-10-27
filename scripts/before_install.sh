@@ -18,7 +18,8 @@ cd /opt/mlproject
 python3 -m venv .venv || python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install -r requirements.txt
+# Corrected path to the requirements file
+pip install -r /opt/mlproject/requirements.txt
 
 # Create (or update) systemd service for Gunicorn
 sudo tee /etc/systemd/system/mlproject.service >/dev/null <<'EOF'
@@ -38,3 +39,4 @@ WantedBy=multi-user.target
 EOF
 
 sudo systemctl daemon-reload
+
