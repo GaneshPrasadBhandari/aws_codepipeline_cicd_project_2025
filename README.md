@@ -2,7 +2,7 @@
 
 ## 👨‍💻 Author
 **Ganesh Prasad Bhandari**  
-Ex. Sr. AI/ML & GenAI Solution Architect | MSIT (Clark University, USA)
+Ex. Sr. AI/ML Scientist & GenAI Solution Architect | MSIT (Clark University, USA)
 
 ---
 
@@ -242,6 +242,7 @@ It is production-ready, scalable, and extendable to containerized (Docker/Kubern
 
 ## 📜 License
 MIT License © 2025 Ganesh Prasad Bhandari
+
 
 
 
