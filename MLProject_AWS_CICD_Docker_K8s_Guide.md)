@@ -1,0 +1,312 @@
+# 🚀 End-to-End MLOps Project – AWS CI/CD + Docker + (Future) Kubernetes
+
+**Author:** Ganesh Prasad Bhandari  
+**Role Target:** MLOps Engineer / AI Platform Engineer / Cloud Solution Architect  
+
+---
+
+## 🧭 Overview
+
+This guide shows how to take a **Flask + ML model app** from **local development** to a **fully automated CI/CD pipeline on AWS**, including:
+
+- GitHub  
+- AWS CodePipeline  
+- AWS CodeDeploy  
+- EC2  
+- Docker & ECR  
+- (Optional next step) EKS / Kubernetes  
+- Monitoring & logging via CloudWatch  
+
+---
+
+## ⚙️ 0. Prerequisites
+
+- AWS account (Free Tier eligible)  
+- Basic Python & Git knowledge  
+- Windows laptop with:
+  - WSL2 Ubuntu  
+  - Docker Desktop (integrated with WSL2)  
+  - Visual Studio Code (Remote WSL extension)
+
+---
+
+## 🧩 1. Local ML Flask App Setup
+
+### 1.1 Folder structure
+```bash
+aws_ml_cicd_project/
+├── app.py
+├── requirements.txt
+├── src/
+│   └── pipeline/
+│       └── predict_pipeline.py
+├── models/
+│   └── model.pkl
+├── templates/
+│   ├── index.html
+│   └── home.html
+├── scripts/
+│   ├── before_install.sh
+│   ├── install_dependencies.sh
+│   ├── after_install.sh
+│   └── start_service.sh
+└── Dockerfile
+
+1.2 Example app.py
+from flask import Flask, render_template, request
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/predictdata', methods=['GET', 'POST'])
+def predictdata():
+    if request.method == 'POST':
+        result = "Prediction output"
+        return render_template('home.html', result=result)
+    return render_template('home.html')
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
+1.3 Install dependencies and test locally
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python app.py
+
+Visit:
+👉 http://localhost:5000
+
+🧰 2. GitHub Setup
+
+2.1 Initialize Git
+git init
+git add .
+git commit -m "Initial commit - Flask ML app"
+git remote add origin https://github.com/<your-username>/aws_ml_cicd_project.git
+git push -u origin main
+
+☁️ 3. AWS EC2 Setup & SSH Access
+
+3.1 Launch EC2
+Region: us-east-1
+AMI: Ubuntu 22.04
+Type: t3.micro
+Key pair: mlproject_new_key1.pem
+Security Group: Allow 22 (SSH) and 80 (HTTP) inbound.
+
+3.2 Connect from WSL
+mkdir -p ~/.ssh
+cp /mnt/d/path/to/mlproject_new_key1.pem ~/.ssh/
+chmod 600 ~/.ssh/mlproject_new_key1.pem
+ssh -i ~/.ssh/mlproject_new_key1.pem ubuntu@<ec2-public-dns>
+
+🔑 4. IAM Roles Setup
+
+4.1 EC2 Role
+Attach policies:
+- AmazonEC2RoleforAWSCodeDeploy
+- AmazonEC2ContainerRegistryReadOnly
+
+4.2 CodeDeploy Role
+Trusted entity: CodeDeploy
+Policy: AWSCodeDeployRole
+
+4.3 CodePipeline Role
+Trusted entity: CodePipeline
+Policy: AWSCodePipelineFullAccess + inline CodeDeploy access
+
+4.4 CodeBuild Role
+For Docker + ECR builds:
+
+- AmazonEC2ContainerRegistryPowerUser
+- AmazonS3ReadOnlyAccess
+- AWSCodeBuildDeveloperAccess
+
+📦 5. Install CodeDeploy Agent
+
+SSH into EC2:
+sudo apt update
+sudo apt install -y ruby wget
+wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
+chmod +x ./install
+sudo ./install auto
+sudo systemctl enable codedeploy-agent
+sudo systemctl status codedeploy-agent
+
+🔄 6. AWS CodeDeploy Configuration
+
+6.1 appspec.yml
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/mlproject
+hooks:
+  BeforeInstall:
+    - location: scripts/before_install.sh
+      runas: root
+  AfterInstall:
+    - location: scripts/install_dependencies.sh
+      runas: ubuntu
+  ApplicationStart:
+    - location: scripts/start_service.sh
+      runas: root
+
+6.2 Deployment Scripts
+scripts/before_install.sh
+#!/bin/bash
+sudo systemctl stop mlproject.service || true
+sudo rm -rf /opt/mlproject
+sudo mkdir -p /opt/mlproject
+sudo chown ubuntu:ubuntu /opt/mlproject
+
+scripts/install_dependencies.sh
+#!/bin/bash
+cd /opt/mlproject
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+scripts/start_service.sh
+#!/bin/bash
+sudo bash -c 'cat > /etc/systemd/system/mlproject.service' <<EOF
+[Unit]
+Description=Gunicorn Service
+After=network.target
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/mlproject
+ExecStart=/opt/mlproject/.venv/bin/gunicorn -w 2 -b 0.0.0.0:8000 app:app
+Restart=always
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable mlproject
+sudo systemctl restart mlproject
+
+🧮 7. AWS CodePipeline (Manual Deploy Flow)
+
+1 Go to AWS CodePipeline → Create Pipeline
+2 Add:
+
+    - Source: GitHub (via CodeConnections)
+    - Build: None (for now)
+    - Deploy: CodeDeploy (mlproject-cicd-app)
+
+3 Save & Run.
+
+🐳 8. Dockerize App
+
+8.1 Dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:5000", "app:app"]
+
+8.2 Build locally
+docker build -t mlproject-flask:local .
+docker run -d -p 5000:5000 mlproject-flask:local
+
+🧱 9. Push Image to ECR via CodeBuild
+9.1 Create Repository
+aws ecr create-repository --repository-name mlproject-flask
+
+9.2 buildspec.yml
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - echo Logging into ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
+  build:
+    commands:
+      - docker build -t <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/mlproject-flask:latest .
+  post_build:
+    commands:
+      - docker push <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/mlproject-flask:latest
+
+🧠 10. (Optional) Kubernetes / EKS
+Example Deployment YAML
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlproject
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mlproject
+  template:
+    metadata:
+      labels:
+        app: mlproject
+    spec:
+      containers:
+        - name: mlproject
+          image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/mlproject-flask:latest
+          ports:
+            - containerPort: 5000
+
+📊 11. Monitoring & Logging
+
+Systemd logs:
+sudo journalctl -u mlproject.service -n 100
+
+Docker logs:
+docker logs mlproject
+
+CloudWatch:
+- Enable agent or set alarms on CPU / status check.
+
+🧩 12. Daily Workflow (Runbook)
+# 1. Start EC2 and SSH in
+ssh -i ~/.ssh/mlproject_new_key1.pem ubuntu@<ec2-public-dns>
+
+# 2. Verify agent and docker
+sudo systemctl status codedeploy-agent
+docker ps
+
+# 3. Local changes
+git pull origin main
+python app.py
+
+# 4. Build Docker image
+docker build -t mlproject-flask:local .
+docker run --rm -p 5000:5000 mlproject-flask:local
+
+# 5. Push to GitHub
+git add .
+git commit -m "Update ML pipeline and Docker build"
+git push origin main
+
+# 6. Trigger CodePipeline (auto or manual)
+
+✅ End of Guide
+Version: 4.0 | Last Updated: November 2025
+
+---
+
+### ✅ Step 2 — Preview Markdown
+
+In **VS Code**, click the file → press:
+
+Ctrl + Shift + V
+
+That opens the **Markdown preview** side-by-side.  
+Now you’ll see:
+- Bold headers  
+- Copyable code blocks  
+- Proper indentation and GitHub-style formatting  
+
+---
+
+
+

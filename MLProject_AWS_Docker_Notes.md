@@ -29,7 +29,7 @@ _Last updated: after successful local Docker build of `mlproject-flask:local`_
 
 - SSH key: `mlproject_new_key1.pem` stored in WSL:
 
-  ```bash
+ ```bash
   ~/.ssh/mlproject_new_key1.pem
   chmod 600 ~/.ssh/mlproject_new_key1.pem
 
@@ -278,3 +278,4 @@ If you paste that into a markdown file and commit it to the repo, then in a **ne
 > (then paste the contents or upload the file)
 
 …and we can continue exactly from where you left off (hooking Docker into ECR and CodePipeline, or whatever you want next).
+
