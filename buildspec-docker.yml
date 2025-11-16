@@ -37,3 +37,6 @@ artifacts:
     - Dockerfile
     - buildspec-docker.yml
   discard-paths: yes
+
+
+# "ci: test pipeline with codebuild docker stage + ECR build"

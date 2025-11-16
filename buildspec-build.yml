@@ -17,3 +17,6 @@ phases:
       - cd bundle && zip -r ../artifact.zip .
 artifacts:
   files: ['artifact.zip']
+
+
+# "without codebuild and docker file we used for cd only"
