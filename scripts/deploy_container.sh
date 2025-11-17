@@ -27,4 +27,4 @@ docker run -d \
   --restart always \
   ${ECR_URI}:${IMAGE_TAG}
 
-echo "Docker container deployment complete."s
+echo "Docker container deployment complete."
