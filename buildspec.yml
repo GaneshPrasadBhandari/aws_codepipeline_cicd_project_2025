@@ -5,7 +5,7 @@ env:
     IMAGE_REPO_NAME: "mlproject-flask-cicd-ecrrepo"
     IMAGE_TAG: "latest"
     AWS_DEFAULT_REGION: "us-east-1"
-    ACCOUNT_ID: "099635824510"
+    
 
 phases:
   pre_build:
