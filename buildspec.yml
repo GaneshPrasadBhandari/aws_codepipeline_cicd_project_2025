@@ -6,7 +6,6 @@ env:
     IMAGE_TAG: "latest"
     AWS_DEFAULT_REGION: "us-east-1"
     
-
 phases:
   pre_build:
     commands:
@@ -38,6 +37,3 @@ artifacts:
     - Dockerfile
     - buildspec.yml
   discard-paths: yes
-
-
-# "ci: test pipeline with codebuild docker stage + ECR build"
