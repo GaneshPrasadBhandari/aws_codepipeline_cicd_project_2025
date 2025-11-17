@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    IMAGE_REPO_NAME: "mlproject"
+    IMAGE_REPO_NAME: "mlproject-flask-cicd-ecrrepo"
     IMAGE_TAG: "latest"
     AWS_DEFAULT_REGION: "us-east-1"
 
@@ -11,7 +11,7 @@ phases:
     commands:
       - echo "Logging in to Amazon ECR..."
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-      - ECR_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}
+      - ECR_URI=${099635824510}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}
       - echo "ECR URI: $ECR_URI"
       - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} \
         | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
@@ -35,7 +35,7 @@ artifacts:
     - appspec.yml
     - scripts/**
     - Dockerfile
-    - buildspec-docker.yml
+    - buildspec.yml
   discard-paths: yes
 
 
