@@ -9,18 +9,23 @@ permissions:
     group: ubuntu
     mode: 755
 hooks:
+  # The BeforeInstall hook can be kept as it is, but it's now mostly redundant
   BeforeInstall:
     - location: scripts/before_install.sh
       timeout: 300
-      runas: ubuntu   # <-- CHANGE THIS TO ubuntu
-  AfterInstall: # <-- NEW HOOK ADDED HERE
-    - location: scripts/after_install.sh
+      runas: ubuntu
+  # **CHANGE 1: This runs the Docker deployment script**
+  AfterInstall:
+    - location: scripts/deploy_container.sh
       timeout: 300
-      runas: ubuntu   # <-- CHANGE THIS TO ubuntu
+      runas: ubuntu
+  # **CHANGE 2: Use the health check for the new container**
   ApplicationStart:
-    - location: scripts/start_service.sh
+    - location: scripts/health_check.sh
       timeout: 300
+      runas: ubuntu
+  # **CHANGE 3: Stop the container, not the systemd service**
   ApplicationStop:
-    - location: scripts/stop_service.sh
+    - location: scripts/stop_container.sh
       timeout: 300
-
+      runas: ubuntu

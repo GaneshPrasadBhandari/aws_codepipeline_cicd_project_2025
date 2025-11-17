@@ -1,0 +1,26 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/mlproject
+permissions:
+  - object: /opt/mlproject
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+hooks:
+  BeforeInstall:
+    - location: scripts/before_install.sh
+      timeout: 300
+      runas: ubuntu   # <-- CHANGE THIS TO ubuntu
+  AfterInstall: # <-- NEW HOOK ADDED HERE
+    - location: scripts/after_install.sh
+      timeout: 300
+      runas: ubuntu   # <-- CHANGE THIS TO ubuntu
+  ApplicationStart:
+    - location: scripts/start_service.sh
+      timeout: 300
+  ApplicationStop:
+    - location: scripts/stop_service.sh
+      timeout: 300
+
